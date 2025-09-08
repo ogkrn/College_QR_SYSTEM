@@ -1,0 +1,32 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  rollNo    String   @unique
+  name      String
+  phone     String
+  outings   Outing[]
+  leaves    LeaveRequest[]
+}
+
+model Outing {
+  id        Int      @id @default(autoincrement())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  exitTime  DateTime
+  entryTime DateTime?
+  status    String
+}
+
+model LeaveRequest {
+  id        Int      @id @default(autoincrement())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  reason    String
+  startDate DateTime
+  endDate   DateTime
+  status    String
+}
