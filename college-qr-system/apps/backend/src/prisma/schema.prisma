@@ -1,32 +1,70 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Student {
-  id        Int      @id @default(autoincrement())
-  rollNo    String   @unique
-  name      String
-  phone     String
-  outings   Outing[]
-  leaves    LeaveRequest[]
+  id            String        @id @default(cuid())
+  rollNumber    String        @unique
+  name          String
+  email         String        @unique
+  passwordHash  String
+  qrActivities  QRActivity[]
+  attendance    Attendance[]
+  resetRequests PasswordReset[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
-model Outing {
-  id        Int      @id @default(autoincrement())
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId Int
-  exitTime  DateTime
-  entryTime DateTime?
-  status    String
+model Admin {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String
+  role          Role          @default(USER)
+  resetApprovals PasswordReset[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
-model LeaveRequest {
-  id        Int      @id @default(autoincrement())
+model QRActivity {
+  id        String   @id @default(cuid())
   student   Student  @relation(fields: [studentId], references: [id])
-  studentId Int
-  reason    String
-  startDate DateTime
-  endDate   DateTime
-  status    String
+  studentId String
+  scannedAt DateTime @default(now())
+  isValid   Boolean
 }
+
+model Attendance {
+  id        String   @id @default(cuid())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId String
+  date      DateTime
+  status    AttendanceStatus
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId String
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  SUPERADMIN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  }
