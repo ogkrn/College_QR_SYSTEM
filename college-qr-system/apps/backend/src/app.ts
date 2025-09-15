@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // routes
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 app.get("/", (_, res) => {
   res.send("🚀 Server is running");
 });
