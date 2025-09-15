@@ -1,14 +1,19 @@
 import { Router } from "express";
+import { Request, Response } from "express";
 import { prisma } from "../prismaclient.js";
 import { hashPassword, comparePassword, generateToken } from "../utils/jwt.js";
 const router = Router();
 
-router.post("/register", async (req, res) :Promise<void>  =>  {
-  const { rollNo, name, password, role } = req.body;
+
+router.post("/register", async (req: Request, res: Response): Promise<void> => {
+  const { rollNo, name, password, role } = req.body || {};
+if (!rollNo || !name || !password || !role) {
+  res.status(400).json({ error: "Missing required fields" });
+  return;
+}
 
   const existing = await prisma.user.findUnique({ where: { rollNo } });
-  if (existing) 
-    {
+  if (existing) {
       res.status(400).json({ error: "User already exists" });
       return;
 }
