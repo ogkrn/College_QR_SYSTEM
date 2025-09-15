@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Request, Response } from "express";
 import { prisma } from "../prismaclient.js";
+import { Role } from "@prisma/client";
 import { hashPassword, comparePassword, generateToken } from "../utils/jwt.js";
 const router = Router();
 
@@ -18,13 +19,26 @@ if (!rollNo || !name || !password || !role) {
       return;
 }
 
-  const hashed = await hashPassword(password);
-  const user = await prisma.user.create({
-    data: { rollNo, name, password: hashed, role },
-  });
-
-  res.json(user);
+const hashed = await hashPassword(password);
+const user = await prisma.user.create({
+  data: { rollNo, name, password: hashed, role },
 });
+
+res.json(user);
+const newUser = await prisma.user.create({
+  data: { 
+    rollNo, 
+    name, 
+    password: hashed, 
+    role: Role.STUDENT   // convert input to enum
+  },
+
+})
+res.json(newUser);
+}
+);
+
+
 
 // Login
 router.post("/login", async (req, res) : Promise<void>  => {
