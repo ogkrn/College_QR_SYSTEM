@@ -17,3 +17,12 @@ export function authMiddleware(req: any, res: Response, next: NextFunction) {
     res.status(403).json({ error: "Invalid token" });
   }
 }
+
+export function requireRole(role: string) {
+  return (req: any, res: Response, next: NextFunction) => {
+    if (req.user.role !== role) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    next();
+  };
+}
