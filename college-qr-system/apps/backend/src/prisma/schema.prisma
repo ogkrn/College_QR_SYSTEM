@@ -1,6 +1,5 @@
 // prisma/schema.prisma
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -8,7 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-    binaryTargets = ["native"]
+  binaryTargets = ["native"]
 }
 
 model User {
@@ -34,13 +33,12 @@ model Student {
 }
 
 model Admin {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  passwordHash  String
-  role          Role          @default(USER)
-  resetApprovals PasswordReset[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model QRActivity {
@@ -52,8 +50,8 @@ model QRActivity {
 }
 
 model Attendance {
-  id        String   @id @default(cuid())
-  student   Student  @relation(fields: [studentId], references: [id])
+  id        String             @id @default(cuid())
+  student   Student            @relation(fields: [studentId], references: [id])
   studentId String
   date      DateTime
   status    AttendanceStatus
@@ -63,15 +61,14 @@ model PasswordReset {
   id        String   @id @default(cuid())
   student   Student  @relation(fields: [studentId], references: [id])
   studentId String
-  admin     Admin?   @relation(fields: [adminId], references: [id])
-  adminId   String?
-  approved  Boolean  @default(false)
+  token     String   @unique       // secure random token
+  expiresAt DateTime               // expiry (e.g., 15 minutes)
+  used      Boolean  @default(false) // mark as used after reset
   createdAt DateTime @default(now())
 }
 
 enum Role {
   STUDENT
-  USER
   ADMIN
 }
 
@@ -79,4 +76,4 @@ enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
-  }
+}
