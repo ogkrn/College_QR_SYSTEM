@@ -1,0 +1,72 @@
+# ==============================================
+# College QR Code Management System
+# Requirements & Dependencies Reference
+# ==============================================
+
+# This file serves as a reference for all project dependencies.
+# For Node.js packages, refer to package.json in each app directory.
+# Below are system requirements and optional Python utilities.
+
+# ==============================================
+# SYSTEM REQUIREMENTS
+# ==============================================
+# - Node.js >= 18.x
+# - npm >= 9.x or yarn >= 1.22.x
+# - PostgreSQL >= 14.x
+# - Git (latest)
+# - Docker (optional, for containerized deployment)
+
+# ==============================================
+# BACKEND DEPENDENCIES (Node.js)
+# Location: college-qr-system/apps/backend/package.json
+# ==============================================
+# 
+# Production Dependencies:
+# ------------------------
+# @prisma/client    ^6.16.1   - Prisma ORM client
+# bcrypt            ^6.0.0    - Password hashing
+# cors              ^2.8.5    - Cross-origin resource sharing
+# dotenv            ^16.4.5   - Environment variable management
+# express           ^5.1.0    - Web framework
+# helmet            ^8.1.0    - Security headers
+# jsonwebtoken      ^9.0.2    - JWT authentication
+# prisma            ^6.15.0   - Prisma CLI
+# zod               ^3.23.8   - Schema validation
+#
+# Development Dependencies:
+# -------------------------
+# @types/bcrypt         ^6.0.0     - TypeScript types for bcrypt
+# @types/cors           ^2.8.19    - TypeScript types for cors
+# @types/express        ^5.0.3     - TypeScript types for express
+# @types/jsonwebtoken   ^9.0.10    - TypeScript types for JWT
+# @types/node           ^20.19.14  - TypeScript types for Node.js
+# nodemon               ^3.1.10    - Development server auto-reload
+# ts-node               ^10.9.2    - TypeScript execution
+# ts-node-dev           ^2.0.0     - TypeScript dev server
+# typescript            ^5.9.2     - TypeScript compiler
+
+# ==============================================
+# QUICK INSTALL COMMANDS
+# ==============================================
+# 
+# Backend:
+#   cd college-qr-system/apps/backend
+#   npm install
+#
+# Admin Portal (when set up):
+#   cd college-qr-system/apps/admin-portal
+#   npm install
+#
+# Student App (when set up):
+#   cd college-qr-system/apps/student-app
+#   npm install
+
+# ==============================================
+# OPTIONAL: Python Utilities (if needed)
+# ==============================================
+# Uncomment and install if using Python scripts for data processing
+
+# pandas>=2.0.0
+# openpyxl>=3.1.0
+# psycopg2-binary>=2.9.0
+# python-dotenv>=1.0.0
