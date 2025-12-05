@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
-import { prisma } from "../prismaclient.js";
+import { prisma } from "../prismaclient";
 import { Role } from "@prisma/client";
-import { hashPassword, comparePassword, generateToken } from "../utils/jwt.js";
+import { hashPassword, comparePassword, generateToken } from "../utils/jwt";
 
 const router = Router();
 
