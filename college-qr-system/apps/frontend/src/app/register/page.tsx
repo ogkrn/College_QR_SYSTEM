@@ -1,20 +1,32 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const roles = ["admin", "student", "guard"];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [role, setRole] = useState(roles[1]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus(`Registered ${name || "new user"} as ${role}.`);
+    setIsLoading(true);
+    setStatus("Creating account...");
+
+    // Simulate API call - replace with actual backend call
+    setTimeout(() => {
+      // Store user info in localStorage (in production, use proper auth state)
+      const user = { name, email, role };
+      localStorage.setItem("user", JSON.stringify(user));
+      router.push("/dashboard");
+    }, 800);
   }
 
   return (
@@ -76,9 +88,10 @@ export default function RegisterPage() {
           </label>
           <button
             type="submit"
-            className="w-full rounded-2xl bg-linear-to-r from-indigo-500 to-fuchsia-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:opacity-90"
+            disabled={isLoading}
+            className="w-full rounded-2xl bg-linear-to-r from-indigo-500 to-fuchsia-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:opacity-90 disabled:opacity-50"
           >
-            Register as {role}
+            {isLoading ? "Creating account..." : `Register as ${role}`}
           </button>
         </form>
         {status && <p className="text-center text-sm text-emerald-300">{status}</p>}

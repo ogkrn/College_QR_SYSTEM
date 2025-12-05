@@ -1,19 +1,31 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const roles = ["admin", "student", "guard"];
 
 export default function LoginPage() {
+  const router = useRouter();
   const [role, setRole] = useState(roles[0]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus(`Logged in ${email || "user"} as ${role}.`);
+    setIsLoading(true);
+    setStatus("Signing in...");
+
+    // Simulate API call - replace with actual backend call
+    setTimeout(() => {
+      // Store user info in localStorage (in production, use proper auth state)
+      const user = { name: email.split("@")[0], email, role };
+      localStorage.setItem("user", JSON.stringify(user));
+      router.push("/dashboard");
+    }, 800);
   }
 
   return (
@@ -63,9 +75,10 @@ export default function LoginPage() {
           </label>
           <button
             type="submit"
-            className="w-full rounded-2xl bg-linear-to-r from-slate-800 to-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:opacity-90"
+            disabled={isLoading}
+            className="w-full rounded-2xl bg-linear-to-r from-slate-800 to-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:opacity-90 disabled:opacity-50"
           >
-            Sign in as {role}
+            {isLoading ? "Signing in..." : `Sign in as ${role}`}
           </button>
         </form>
         {status && <p className="text-center text-sm text-emerald-300">{status}</p>}
