@@ -38,7 +38,7 @@ This isn't just another QR code scanner. It's a **complete ecosystem** designed 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Student App** | Expo + React Native | Mobile app for QR display & scanning |
-| **Admin Portal** | Next.js + Tailwind + ShadCN | Web dashboard for administration |
+| **Frontend** | Next.js + Tailwind + ShadCN | Web app with Admin Portal integrated |
 | **Backend API** | Express + Prisma + PostgreSQL | RESTful API with secure authentication |
 
 ---
@@ -52,12 +52,13 @@ This isn't just another QR code scanner. It's a **complete ecosystem** designed 
 - Attendance history & records
 - Outing request management
 
-### 🖥️ Admin Web Portal
+### 🖥️ Frontend (with Admin Portal)
 - Student record management
 - Password reset approvals
 - Real-time QR activity logs
 - Attendance monitoring dashboard
-- Role-based access control
+- Role-based access control (Admin & User views)
+- Register & login flows with explicit role choice (admin, student, guard)
 
 ### 🔧 Backend API
 - RESTful API architecture
@@ -182,6 +183,25 @@ npm run dev
 
 ---
 
+### 🪄 Frontend Portal (Next.js)
+
+```bash
+# 1️⃣ Navigate to the frontend folder
+cd College_QR_SYSTEM/college-qr-system/apps/frontend
+
+# 2️⃣ Install dependencies
+npm install
+
+# 3️⃣ Start the Next.js dev server
+npm run dev
+```
+
+The web portal exposes landing, login, and register routes. The forms let humans pick a role (admin, student, guard) before authenticating so that the backend knows whether to show dashboards, gates, or guard access.
+
+You can also run `npm run build` and `npm run start` inside `apps/frontend` for production-ready builds.
+
+---
+
 ### 🐳 Docker Installation (Recommended for Production)
 
 ```bash
@@ -206,7 +226,17 @@ College_QR_SYSTEM/
 └── college-qr-system/
     ├── tsconfig.json
     ├── apps/
-    │   ├── admin-portal/         # Next.js Admin Dashboard
+    │   ├── frontend/             # Next.js Web App (includes Admin Portal)
+    │   │   ├── package.json
+    │   │   ├── package-lock.json
+    │   │   ├── next.config.ts
+    │   │   ├── src/
+    │   │   │   └── app/          # Next.js App Router
+    │   │   │       ├── globals.css
+    │   │   │       ├── layout.tsx
+    │   │   │       ├── page.tsx
+    │   │   │       ├── login/     # Login page with role selector
+    │   │   │       └── register/  # Register page with role selector
     │   ├── backend/              # Express.js API Server
     │   │   ├── package.json      # Node.js dependencies
     │   │   ├── tsconfig.json
@@ -236,6 +266,12 @@ Navigate to `college-qr-system/apps/backend` and run:
 | `npm run seed` | Seed the database with initial data |
 
 ---
+
+Frontend scripts (run inside `college-qr-system/apps/frontend`):
+- `npm run dev` – Run the Next.js app in development mode
+- `npm run build` – Compile the production build
+- `npm run lint` – Run ESLint checks across the frontend
+
 
 ## 🌐 Environment Variables
 
