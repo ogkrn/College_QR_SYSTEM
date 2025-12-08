@@ -8,24 +8,46 @@ const roles = ["admin", "student", "guard"];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState(roles[0]);
+  const [role, setRole] = useState(roles[1]); // Default to student
+  const [rollNumber, setRollNumber] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const isAdmin = role === "admin";
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     setStatus("Signing in...");
+    // Build payload according to role
+    const payload: any = { email: email.toLowerCase(), password, role: role.toUpperCase() };
+    if (isAdmin) payload.username = username;
+    else if (role === "guard") payload.idNumber = idNumber;
+    else payload.rollNumber = rollNumber;
 
-    // Simulate API call - replace with actual backend call
-    setTimeout(() => {
-      // Store user info in localStorage (in production, use proper auth state)
-      const user = { name: email.split("@")[0], email, role };
-      localStorage.setItem("user", JSON.stringify(user));
-      router.push("/dashboard");
-    }, 800);
+    fetch("http://localhost:4000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login failed");
+
+        // Store token and user
+        if (data.token) localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setStatus("Login successful");
+        router.push("/dashboard");
+      })
+      .catch((err: Error) => {
+        setStatus(err.message);
+      })
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -38,12 +60,65 @@ export default function LoginPage() {
         </header>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-200">
+            Role
+            <select
+              className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+            >
+              {roles.map((option) => (
+                <option key={option} value={option} className="text-slate-900">
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+          
+          {isAdmin ? (
+            <label className="block text-sm font-medium text-slate-200">
+              Username
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                required
+                placeholder="Enter your username"
+              />
+            </label>
+          ) : role === "guard" ? (
+            <label className="block text-sm font-medium text-slate-200">
+              ID number
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={idNumber}
+                onChange={(event) => setIdNumber(event.target.value)}
+                required
+                placeholder="G-12345"
+              />
+            </label>
+          ) : (
+            <label className="block text-sm font-medium text-slate-200">
+              Roll number
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={rollNumber}
+                onChange={(event) => setRollNumber(event.target.value)}
+                required
+                placeholder="2025BCS001"
+              />
+            </label>
+          )}
+          
+          <label className="block text-sm font-medium text-slate-200">
             Email
             <input
               type="email"
               className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => setEmail(event.target.value.toLowerCase())}
               required
               placeholder="user@college.edu"
             />
@@ -58,20 +133,6 @@ export default function LoginPage() {
               required
               placeholder="••••••••"
             />
-          </label>
-          <label className="block text-sm font-medium text-slate-200">
-            Role
-            <select
-              className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
-              value={role}
-              onChange={(event) => setRole(event.target.value)}
-            >
-              {roles.map((option) => (
-                <option key={option} value={option} className="text-slate-900">
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </option>
-              ))}
-            </select>
           </label>
           <button
             type="submit"

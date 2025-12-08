@@ -11,69 +11,92 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  rollNo    String   @unique
-  name      String
-  password  String
-  role      Role     @default(STUDENT)
-  createdAt DateTime @default(now())
-}
-
-model Student {
-  id            String        @id @default(cuid())
-  rollNumber    String        @unique
-  name          String
-  email         String        @unique
-  passwordHash  String
-  qrActivities  QRActivity[]
-  attendance    Attendance[]
-  resetRequests PasswordReset[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-}
-
-model Admin {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String        @id @default(cuid())
+  rollNumber   String?       @unique
+  username     String?       @unique
+  name         String
+  email        String        @unique
   passwordHash String
-  role         Role     @default(ADMIN)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role
+  isApproved   Boolean       @default(false)
+  isVerified   Boolean       @default(false)
+  otp          String?
+  otpExpiry    DateTime?
+  qrActivities QRActivity[]
+  attendance   Attendance[]
+  outings      Outing[]
+  leaves       Leave[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model QRActivity {
   id        String   @id @default(cuid())
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   scannedAt DateTime @default(now())
+  location  String
   isValid   Boolean
 }
 
 model Attendance {
-  id        String             @id @default(cuid())
-  student   Student            @relation(fields: [studentId], references: [id])
-  studentId String
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   date      DateTime
   status    AttendanceStatus
+  createdAt DateTime         @default(now())
 }
 
-model PasswordReset {
-  id        String   @id @default(cuid())
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId String
-  token     String   @unique       // secure random token
-  expiresAt DateTime               // expiry (e.g., 15 minutes)
-  used      Boolean  @default(false) // mark as used after reset
-  createdAt DateTime @default(now())
+model Outing {
+  id           String        @id @default(cuid())
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  purpose      String
+  destination  String
+  startTime    DateTime
+  endTime      DateTime?
+  status       OutingStatus  @default(PENDING)
+  approvedBy   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Leave {
+  id          String      @id @default(cuid())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  reason      String
+  startDate   DateTime
+  endDate     DateTime
+  status      LeaveStatus @default(PENDING)
+  approvedBy  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 enum Role {
   STUDENT
   ADMIN
+  GUARD
+  SUPER_ADMIN
 }
 
 enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
+}
+
+enum OutingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

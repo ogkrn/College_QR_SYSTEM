@@ -52,13 +52,15 @@ This isn't just another QR code scanner. It's a **complete ecosystem** designed 
 - Attendance history & records
 - Outing request management
 
-### 🖥️ Frontend (with Admin Portal)
+### 🖥️ Frontend
 - Student record management
 - Password reset approvals
 - Real-time QR activity logs
 - Attendance monitoring dashboard
 - Role-based access control (Admin & User views)
 - Register & login flows with explicit role choice (admin, student, guard)
+- Login & register now collect roll numbers as the primary identifier so every role can be uniquely tracked
+- Each dashboard exposes tailored quick actions (Admin: view student list, all outings, approve leave, system settings; Student: scan QR code, attendance, leave requests, settings; Guard: QR code, outing requests, extended time, leave scanner, support)
 
 ### 🔧 Backend API
 - RESTful API architecture

@@ -8,12 +8,17 @@ const roles = ["admin", "student", "guard"];
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [role, setRole] = useState(roles[1]);
+  const [role, setRole] = useState(roles[1]); // Default to student
   const [name, setName] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const isAdmin = role === "admin";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,10 +27,19 @@ export default function RegisterPage() {
 
     // Simulate API call - replace with actual backend call
     setTimeout(() => {
-      // Store user info in localStorage (in production, use proper auth state)
-      const user = { name, email, role };
-      localStorage.setItem("user", JSON.stringify(user));
-      router.push("/dashboard");
+      if (isAdmin) {
+        // Admin registration - needs approval
+        setStatus("Registration initiated! Redirecting to email verification...");
+        setTimeout(() => {
+          router.push(`/verify-otp?email=${encodeURIComponent(email.toLowerCase())}`);
+        }, 1500);
+      } else {
+        // Student/Guard registration - needs email verification
+        setStatus("Registration initiated! Redirecting to email verification...");
+        setTimeout(() => {
+          router.push(`/verify-otp?email=${encodeURIComponent(email.toLowerCase())}`);
+        }, 1500);
+      }
     }, 800);
   }
 
@@ -41,6 +55,21 @@ export default function RegisterPage() {
         </header>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-200">
+            Role
+            <select
+              className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+            >
+              {roles.map((option) => (
+                <option key={option} value={option} className="text-slate-900">
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+          
+          <label className="block text-sm font-medium text-slate-200">
             Full name
             <input
               className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
@@ -50,13 +79,52 @@ export default function RegisterPage() {
               placeholder="Aarav Patel"
             />
           </label>
+          
+          {isAdmin ? (
+            <label className="block text-sm font-medium text-slate-200">
+              Username
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                required
+                placeholder="Choose a unique username"
+              />
+            </label>
+          ) : role === "guard" ? (
+            <label className="block text-sm font-medium text-slate-200">
+              ID number
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={idNumber}
+                onChange={(event) => setIdNumber(event.target.value)}
+                required
+                placeholder="G-12345"
+              />
+            </label>
+          ) : (
+            <label className="block text-sm font-medium text-slate-200">
+              Roll number
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={rollNumber}
+                onChange={(event) => setRollNumber(event.target.value)}
+                required
+                placeholder="2025BCS001"
+              />
+            </label>
+          )}
+          
           <label className="block text-sm font-medium text-slate-200">
             Email
             <input
               type="email"
               className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => setEmail(event.target.value.toLowerCase())}
               required
               placeholder="aarav@college.edu"
             />
@@ -71,20 +139,6 @@ export default function RegisterPage() {
               required
               placeholder="Strong password"
             />
-          </label>
-          <label className="block text-sm font-medium text-slate-200">
-            Role
-            <select
-              className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
-              value={role}
-              onChange={(event) => setRole(event.target.value)}
-            >
-              {roles.map((option) => (
-                <option key={option} value={option} className="text-slate-900">
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </option>
-              ))}
-            </select>
           </label>
           <button
             type="submit"
