@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../prismaclient';
 import { generateToken } from '../utils/jwt';
 import { z } from 'zod';
-import { sendOTPEmail } from '../utils/email';
 import { generateOTP, getOTPExpiry, isOTPExpired } from '../utils/otp';
 
 // Validation schemas
@@ -118,8 +117,10 @@ export const registerInit = async (req: Request, res: Response): Promise<void> =
       },
     });
 
-    // Send OTP email
-    const emailSent = await sendOTPEmail(normalizedEmail, otp, name);
+    // TODO: Integrate email provider (Supabase, SendGrid, etc.) to send OTP
+    // For now, log OTP to console for testing
+    console.log(`[DEV] OTP for ${normalizedEmail}: ${otp}`);
+    const emailSent = true; // Stub: assume success until email provider is integrated
 
     if (!emailSent) {
       // Rollback - delete the created user
@@ -260,8 +261,10 @@ export const resendOTP = async (req: Request, res: Response): Promise<void> => {
       data: { otp, otpExpiry },
     });
 
-    // Send OTP email
-    const emailSent = await sendOTPEmail(normalizedEmail, otp, user.name);
+    // TODO: Integrate email provider (Supabase, SendGrid, etc.) to send OTP
+    // For now, log OTP to console for testing
+    console.log(`[DEV] OTP for ${normalizedEmail}: ${otp}`);
+    const emailSent = true; // Stub: assume success until email provider is integrated
 
     if (!emailSent) {
       res.status(500).json({ error: 'Failed to send verification email. Please try again.' });
