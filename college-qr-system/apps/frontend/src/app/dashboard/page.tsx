@@ -55,6 +55,7 @@ const dashboardConfig: Record<string, DashboardVariant> = {
 		heroNote: "Approve admin registrations, manage attendance, and control system settings.",
 		quickActions: [
 			{ label: "Register Admin", href: "/admins/requests", icon: "👑" },
+			{ label: "View Student List", href: "/students", icon: "👥" },
 			{ label: "Attendance", href: "/attendance", icon: "📊" },
 			{ label: "Leave Requests", href: "/leave/approve", icon: "📝" },
 			{ label: "Settings", href: "/settings", icon: "⚙️" },
@@ -72,6 +73,7 @@ const dashboardConfig: Record<string, DashboardVariant> = {
 		heroNote: "Scan QR codes, verify outings, and report incidents in seconds.",
 		quickActions: [
 			{ label: "QR Code", href: "/scan", icon: "📸" },
+			{ label: "View Student List", href: "/students", icon: "👥" },
 			{ label: "Outing Requests", href: "/outing", icon: "🚪" },
 			{ label: "Extended Time", href: "/extended-time", icon: "⏱️" },
 			{ label: "Leave Scanner", href: "/leave/scanner", icon: "🧾" },

@@ -8,12 +8,13 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 **🚀 A modern, secure, and scalable campus management solution**
 
-[Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation)
+[Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation) • [Test Accounts](#-test-accounts)
 
 </div>
 
@@ -30,44 +31,88 @@ This isn't just another QR code scanner. It's a **complete ecosystem** designed 
 - 🔐 **Dynamic QR Codes** – Rotating every few minutes to prevent screenshot-based fraud
 - 📱 **Mobile-First Design** – Students carry their ID right in their pocket
 - 🖥️ **Powerful Admin Dashboard** – Real-time monitoring and complete control
-- 🛡️ **Enterprise-Grade Security** – JWT authentication, bcrypt hashing, rate limiting & more
+- 👑 **Super Admin System** – Hidden super admin for managing admin approvals
+- 🛡️ **Enterprise-Grade Security** – JWT authentication, bcrypt hashing, OTP verification & more
 - 🐳 **Docker Ready** – Deploy anywhere with containerized infrastructure
 
 ### 🏗️ System Architecture
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Student App** | Expo + React Native | Mobile app for QR display & scanning |
-| **Frontend** | Next.js + Tailwind + ShadCN | Web app with Admin Portal integrated |
+| **Student App** | Expo + React Native | Mobile app for QR display & student features |
+| **Frontend** | Next.js + Tailwind CSS | Web portal with role-based dashboards |
 | **Backend API** | Express + Prisma + PostgreSQL | RESTful API with secure authentication |
 
 ---
 
 ## ✨ Features
 
-### 📱 Student Mobile App
-- Secure login with JWT authentication
-- Dynamic QR code generation (auto-rotating)
-- Gate entry/exit scanning
+### 👑 Super Admin
+- Hidden super admin account (seeded automatically)
+- Approve/reject admin registration requests
+- View all registered students
+- Full system control and settings
+
+### 🛡️ Admin Portal
+- Admin registration requires Super Admin approval
+- View student list with names and roll numbers
+- Manage outings and leave approvals
+- System settings and monitoring
+
+### 📱 Student Mobile App (Expo)
+- Secure login with roll number + email + password
+- Student registration with OTP email verification
+- Dashboard with quick actions, stats, and activity feed
 - Attendance history & records
 - Outing request management
 
-### 🖥️ Frontend
-- Student record management
-- Password reset approvals
-- Real-time QR activity logs
-- Attendance monitoring dashboard
-- Role-based access control (Admin & User views)
-- Register & login flows with explicit role choice (admin, student, guard)
-- Login & register now collect roll numbers as the primary identifier so every role can be uniquely tracked
-- Each dashboard exposes tailored quick actions (Admin: view student list, all outings, approve leave, system settings; Student: scan QR code, attendance, leave requests, settings; Guard: QR code, outing requests, extended time, leave scanner, support)
+### 🖥️ Web Frontend
+- Role-based login (Admin, Student, Guard)
+- Role-scoped dashboards with tailored quick actions
+- Student list page for admins/guards/super admin
+- Admin approval workflow for Super Admin
+- Pending approval page for new admin registrations
+
+### 🚪 Guard Features
+- QR code scanning
+- View student list
+- Outing request management
+- Extended time handling
+- Leave scanner
 
 ### 🔧 Backend API
 - RESTful API architecture
-- JWT access & refresh token authentication
+- JWT access token authentication
+- OTP email verification (console log for dev, ready for Supabase/SMTP)
+- Role-scoped unique constraints (student roll ≠ guard ID conflict)
 - Prisma ORM with PostgreSQL
 - Input validation with Zod
-- Security: Helmet.js, CORS, Rate Limiting
+- Security: Helmet.js, CORS, bcrypt password hashing
+
+---
+
+## 🔐 Authentication System
+
+### Registration Flow
+| Role | Flow |
+|------|------|
+| **Student/Guard** | Register → OTP sent to email → Verify OTP → Login |
+| **Admin** | Register → Pending approval page → Super Admin approves → Login |
+| **Super Admin** | Pre-seeded account (cannot register) |
+
+### Login Identifiers
+| Role | Required Fields |
+|------|-----------------|
+| **Student** | Email + Password + Roll Number |
+| **Guard** | Email + Password + ID Number + Name |
+| **Admin** | Email + Password + Username |
+| **Super Admin** | Same as Admin (uses Admin login) |
+
+### Role-Scoped Uniqueness
+- Student roll numbers are unique among students only
+- Guard IDs are unique among guards only
+- Admin usernames are unique among admins only
+- This allows a student and guard to have the same numeric ID (e.g., "000")
 
 ---
 
@@ -78,10 +123,24 @@ This isn't just another QR code scanner. It's a **complete ecosystem** designed 
 | **Languages** | TypeScript, JavaScript |
 | **Backend** | Node.js, Express.js, Prisma ORM |
 | **Database** | PostgreSQL |
-| **Frontend** | Next.js, React, Tailwind CSS, ShadCN UI |
-| **Mobile** | React Native, Expo |
-| **Security** | JWT, bcrypt, Helmet.js, Zod |
+| **Frontend** | Next.js 16, React, Tailwind CSS |
+| **Mobile** | React Native, Expo Go |
+| **Security** | JWT, bcrypt, Zod validation |
 | **DevOps** | Docker, GitHub Actions |
+
+---
+
+## 🧪 Test Accounts
+
+After running `npm run seed`, these accounts are available:
+
+| Role | Email | Password | Identifier |
+|------|-------|----------|------------|
+| **Super Admin** | `admin@gmail.com` | `Admin@123` | Username: `Admin@1` |
+| **Student** | `student@gmail.com` | `Student@123` | Roll: `000` |
+| **Guard** | `guard@gmail.com` | `Guard@123` | ID: `000` |
+
+> **Note:** Student and Guard can have the same ID (`000`) because uniqueness is scoped per role.
 
 ---
 
@@ -198,9 +257,34 @@ npm install
 npm run dev
 ```
 
-The web portal exposes landing, login, and register routes. The forms let humans pick a role (admin, student, guard) before authenticating so that the backend knows whether to show dashboards, gates, or guard access.
+The web portal exposes landing, login, and register routes. The forms let users pick a role (admin, student, guard) before authenticating.
 
 You can also run `npm run build` and `npm run start` inside `apps/frontend` for production-ready builds.
+
+---
+
+### 📱 Mobile App Setup (React Native Expo)
+
+```bash
+# 1️⃣ Navigate to the student-app folder
+cd College_QR_SYSTEM/college-qr-system/apps/student-app
+
+# 2️⃣ Install dependencies
+npm install
+
+# 3️⃣ Update API URL (src/config/api.ts)
+# Replace the IP with your machine's local IP address:
+# export const API_BASE_URL = 'http://YOUR_LOCAL_IP:4000/api';
+
+# 4️⃣ Start Expo development server
+npx expo start
+
+# 5️⃣ Scan QR code with Expo Go app on your phone
+# - iOS: Camera app → scan QR
+# - Android: Expo Go app → scan QR
+```
+
+> **Note:** Make sure your phone and computer are on the same network.
 
 ---
 
@@ -219,62 +303,6 @@ docker-compose up --build
 
 ---
 
-## 📁 Project Structure
-
-```
-College_QR_SYSTEM/
-├── README.md
-├── requirements.txt              # Python dependencies (if any scripts)
-└── college-qr-system/
-    ├── tsconfig.json
-    ├── apps/
-    │   ├── frontend/             # Next.js Web App (includes Admin Portal)
-    │   │   ├── package.json
-    │   │   ├── package-lock.json
-    │   │   ├── next.config.ts
-    │   │   ├── src/
-    │   │   │   └── app/          # Next.js App Router
-    │   │   │       ├── globals.css
-    │   │   │       ├── layout.tsx
-    │   │   │       ├── page.tsx
-    │   │   │       ├── login/     # Login page with role selector
-    │   │   │       └── register/  # Register page with role selector
-    │   ├── backend/              # Express.js API Server
-    │   │   ├── package.json      # Node.js dependencies
-    │   │   ├── tsconfig.json
-    │   │   └── src/
-    │   │       ├── controllers/  # Route controllers
-    │   │       ├── middlewares/  # Auth & error handling
-    │   │       ├── prisma/       # Database schema & migrations
-    │   │       ├── routes/       # API routes
-    │   │       ├── types/        # TypeScript type definitions
-    │   │       └── utils/        # Utility functions (JWT, QR)
-    │   └── student-app/          # React Native Mobile App
-    └── docker/                   # Docker configuration files
-```
-
----
-
-## 🔧 Available Scripts
-
-Navigate to `college-qr-system/apps/backend` and run:
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot-reload |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run migrate` | Run Prisma database migrations |
-| `npm run seed` | Seed the database with initial data |
-
----
-
-Frontend scripts (run inside `college-qr-system/apps/frontend`):
-- `npm run dev` – Run the Next.js app in development mode
-- `npm run build` – Compile the production build
-- `npm run lint` – Run ESLint checks across the frontend
-
-
 ## 🌐 Environment Variables
 
 Create a `.env` file in the `backend` directory with the following variables:
@@ -284,26 +312,116 @@ Create a `.env` file in the `backend` directory with the following variables:
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
 | `JWT_SECRET` | Secret key for JWT tokens | `your-secret-key` |
 | `JWT_REFRESH_SECRET` | Secret key for refresh tokens | `your-refresh-secret` |
-| `PORT` | Server port number | `3000` |
+| `PORT` | Server port number | `4000` |
 
 ---
 
 ## 📚 API Documentation
 
-The backend exposes the following API endpoints:
+The backend exposes the following API endpoints (base URL: `http://localhost:4000/api`):
 
-### Authentication Routes (`/api/auth`)
-- `POST /register` - Register a new user
-- `POST /login` - User login
-- `POST /refresh` - Refresh access token
+### Authentication Routes (`/auth`)
 
-### Outing Routes (`/api/outing`)
-- `POST /request` - Request an outing
-- `GET /status` - Check outing status
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/register` | Register new user (Admin/Student/Guard) | No |
+| `POST` | `/login` | Login with role-based credentials | No |
+| `POST` | `/verify-otp` | Verify OTP for students/guards | No |
+| `POST` | `/resend-otp` | Resend OTP code | No |
+| `POST` | `/refresh` | Refresh access token | No |
 
-### Guard Routes (`/api/guard`)
-- `POST /scan` - Scan QR code at gate
-- `GET /logs` - View scan logs
+### Admin Routes (`/admins`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/` | Get all approved admins | Yes (Admin) |
+| `GET` | `/pending` | Get pending admin requests | Yes (Super Admin) |
+| `POST` | `/:id/approve` | Approve admin registration | Yes (Super Admin) |
+| `POST` | `/:id/reject` | Reject admin registration | Yes (Super Admin) |
+
+### Student Routes (`/students`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/` | Get all verified students | Yes (Admin) |
+
+### Outing Routes (`/outing`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/request` | Request an outing | Yes (Student) |
+| `GET` | `/status` | Check outing status | Yes (Student) |
+
+### Guard Routes (`/guard`)
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/scan` | Scan QR code at gate | Yes (Guard) |
+| `GET` | `/logs` | View scan logs | Yes (Guard) |
+
+---
+
+## 🔐 Authentication Flow
+
+### Registration Flow by Role
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        REGISTRATION                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ADMIN:                                                         │
+│  1. Register with username + email + password                   │
+│  2. Account created (isVerified=true, isApproved=false)         │
+│  3. Redirect to /pending-approval page                          │
+│  4. Wait for Super Admin approval                               │
+│  5. Once approved → can login and access dashboard              │
+│                                                                 │
+│  STUDENT:                                                       │
+│  1. Register with rollNumber + email + password                 │
+│  2. OTP sent (logged to console in dev mode)                    │
+│  3. Verify OTP within 3 minutes                                 │
+│  4. Account verified → can login                                │
+│                                                                 │
+│  GUARD:                                                         │
+│  1. Register with idNumber + email + password                   │
+│  2. OTP sent (logged to console in dev mode)                    │
+│  3. Verify OTP within 3 minutes                                 │
+│  4. Account verified → can login                                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Login Credentials by Role
+
+| Role | Login Field | Example |
+|------|-------------|---------|
+| Admin | Username | `Admin@1` |
+| Super Admin | Username | `Admin@1` |
+| Student | Roll Number | `000` |
+| Guard | ID Number | `000` |
+
+---
+
+## 🛠️ Development Notes
+
+### OTP Email Delivery
+Currently, OTP codes are **logged to console** in development mode. To enable real email delivery:
+- Integrate Supabase Auth, SendGrid, or Mailgun
+- Replace console.log stubs in `auth.controller.ts` with actual email sending
+
+### Database Schema
+The schema uses **role-scoped unique constraints**:
+```prisma
+@@unique([role, rollNumber])
+@@unique([role, username])
+```
+This allows the same identifier (e.g., `000`) to be used by different roles.
+
+### Super Admin
+- The Super Admin is pre-seeded and **hidden from public registration**
+- Only Super Admin can approve/reject admin registrations
+- Username: `Admin@1`, Password: `Admin@123`
 
 ---
 
@@ -335,5 +453,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 **⭐ Star this repo if you find it helpful! ⭐**
 
-</div>
+Made with ❤️ for campus security
 
+</div>
