@@ -12,9 +12,11 @@ export default function LoginPage() {
   const [rollNumber, setRollNumber] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
+  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const isAdmin = role === "admin";
@@ -23,8 +25,11 @@ export default function LoginPage() {
     event.preventDefault();
     setIsLoading(true);
     setStatus("Signing in...");
+    setIsError(false);
     // Build payload according to role
     const payload: any = { email: email.toLowerCase(), password, role: role.toUpperCase() };
+    // include name for guard (not required by backend but helpful for audits)
+    if (role === 'guard') payload.name = name;
     if (isAdmin) payload.username = username;
     else if (role === "guard") payload.idNumber = idNumber;
     else payload.rollNumber = rollNumber;
@@ -42,10 +47,12 @@ export default function LoginPage() {
         if (data.token) localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         setStatus("Login successful");
+        setIsError(false);
         router.push("/dashboard");
       })
       .catch((err: Error) => {
         setStatus(err.message);
+        setIsError(true);
       })
       .finally(() => setIsLoading(false));
   }
@@ -87,6 +94,19 @@ export default function LoginPage() {
               />
             </label>
           ) : role === "guard" ? (
+            <>
+            <label className="block text-sm font-medium text-slate-200">
+              Name
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-400"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                placeholder="Guard name"
+              />
+            </label>
+
             <label className="block text-sm font-medium text-slate-200">
               ID number
               <input
@@ -98,6 +118,7 @@ export default function LoginPage() {
                 placeholder="G-12345"
               />
             </label>
+            </>
           ) : (
             <label className="block text-sm font-medium text-slate-200">
               Roll number
@@ -142,7 +163,7 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : `Sign in as ${role}`}
           </button>
         </form>
-        {status && <p className="text-center text-sm text-emerald-300">{status}</p>}
+        {status && <p className={`text-center text-sm ${isError ? 'text-red-400' : 'text-emerald-300'}`}>{status}</p>}
         <p className="text-center text-sm text-slate-400">
           Need to onboard a new role? {" "}
           <Link className="font-semibold text-white transition hover:text-purple-300" href="/register">

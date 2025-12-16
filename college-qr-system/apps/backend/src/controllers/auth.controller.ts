@@ -65,35 +65,44 @@ export const registerInit = async (req: Request, res: Response): Promise<void> =
     // For students use rollNumber; for guards use idNumber (stored in rollNumber column)
     const numberToCheck = role === 'GUARD' ? idNumber : rollNumber;
     if (numberToCheck) {
-      const existingRollNumber = await prisma.user.findUnique({
-        where: { rollNumber: numberToCheck },
+      // Check roll/id uniqueness scoped by role
+      const existingRollNumber = await prisma.user.findFirst({
+        where: {
+          rollNumber: numberToCheck,
+          role: role === 'GUARD' ? 'GUARD' : 'STUDENT',
+        },
       });
       if (existingRollNumber) {
-        res.status(400).json({ error: 'Roll/ID number already exists' });
+        res.status(400).json({ error: 'Roll/ID number already exists for this role' });
         return;
       }
     }
 
     if (username) {
-      const existingUsername = await prisma.user.findUnique({
-        where: { username },
+      // Enforce username uniqueness only among admins
+      const existingUsername = await prisma.user.findFirst({
+        where: { username, role: 'ADMIN' },
       });
       if (existingUsername) {
-        res.status(400).json({ error: 'Username already exists' });
+        res.status(400).json({ error: 'Username already exists for an admin' });
         return;
       }
     }
 
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpiry = getOTPExpiry();
-
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user with unverified status
+    // Create user with appropriate status based on role
     const storedRollNumber: string | null = role === 'ADMIN' ? null : (role === 'GUARD' ? (idNumber ?? null) : (rollNumber ?? null));
     const storedUsername: string | null = role === 'ADMIN' ? (username ?? null) : null;
+
+    // Admins: skip OTP verification, but need Super Admin approval
+    // Students/Guards: need OTP verification, auto-approved after verification
+    const isAdminRole = role === 'ADMIN';
+
+    // Generate OTP only for non-admin roles
+    const otp = isAdminRole ? null : generateOTP();
+    const otpExpiry = isAdminRole ? null : getOTPExpiry();
 
     const user = await prisma.user.create({
       data: {
@@ -104,8 +113,8 @@ export const registerInit = async (req: Request, res: Response): Promise<void> =
         // store guard idNumber in rollNumber column to avoid schema changes
         rollNumber: storedRollNumber,
         username: storedUsername,
-        isApproved: role !== 'ADMIN', // Admins need approval, others are auto-approved
-        isVerified: false, // Not verified until OTP is confirmed
+        isApproved: !isAdminRole, // Admins need Super Admin approval, others are auto-approved
+        isVerified: isAdminRole, // Admins are auto-verified (skip OTP), others need OTP verification
         otp,
         otpExpiry,
       },
@@ -117,6 +126,18 @@ export const registerInit = async (req: Request, res: Response): Promise<void> =
       },
     });
 
+    // For admins, skip OTP and just return success (they wait for approval)
+    if (isAdminRole) {
+      res.status(201).json({
+        message: 'Admin registration submitted. Please wait for Super Admin approval.',
+        userId: user.id,
+        email: user.email,
+        needsApproval: true,
+      });
+      return;
+    }
+
+    // For students/guards, send OTP
     // TODO: Integrate email provider (Supabase, SendGrid, etc.) to send OTP
     // For now, log OTP to console for testing
     console.log(`[DEV] OTP for ${normalizedEmail}: ${otp}`);
@@ -288,35 +309,45 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const normalizedEmail = email.toLowerCase();
 
     // Build where clause based on role
-    let whereClause: any = { email: normalizedEmail, role };
+    let whereClause: any = { email: normalizedEmail };
+    let user = null;
 
-    if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-      // Admin/Super Admin login with username
+    if (role === 'ADMIN') {
+      // Admin login with username - also check for SUPER_ADMIN
       if (!username) {
         res.status(400).json({ error: 'Username is required for admin login' });
         return;
       }
-      whereClause.username = username;
+      console.log('[DEBUG] Admin login attempt:', { email: normalizedEmail, username, role });
+      // First try to find as SUPER_ADMIN, then as ADMIN
+      user = await prisma.user.findFirst({
+        where: { email: normalizedEmail, username, role: 'SUPER_ADMIN' },
+      });
+      if (!user) {
+        user = await prisma.user.findFirst({
+          where: { email: normalizedEmail, username, role: 'ADMIN' },
+        });
+      }
+      console.log('[DEBUG] Found user:', user ? { id: user.id, email: user.email, username: user.username, isApproved: user.isApproved, isVerified: user.isVerified } : null);
     } else if (role === 'GUARD') {
       // Guard login with idNumber (stored in rollNumber column)
       if (!idNumber) {
         res.status(400).json({ error: 'ID number is required for guard login' });
         return;
       }
-      whereClause.rollNumber = idNumber;
+      user = await prisma.user.findFirst({
+        where: { email: normalizedEmail, rollNumber: idNumber, role: 'GUARD' },
+      });
     } else {
       // Student login with roll number
       if (!rollNumber) {
         res.status(400).json({ error: 'Roll number is required for student login' });
         return;
       }
-      whereClause.rollNumber = rollNumber;
+      user = await prisma.user.findFirst({
+        where: { email: normalizedEmail, rollNumber, role: 'STUDENT' },
+      });
     }
-
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: whereClause,
-    });
 
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });

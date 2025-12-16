@@ -20,27 +20,57 @@ export default function RegisterPage() {
 
   const isAdmin = role === "admin";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     setStatus("Creating account...");
 
-    // Simulate API call - replace with actual backend call
-    setTimeout(() => {
+    try {
+      // Build payload according to role
+      const payload: any = {
+        name,
+        email: email.toLowerCase(),
+        password,
+        role: role.toUpperCase(),
+      };
+      
       if (isAdmin) {
-        // Admin registration - needs approval
-        setStatus("Registration initiated! Redirecting to email verification...");
+        payload.username = username;
+      } else if (role === "guard") {
+        payload.idNumber = idNumber;
+      } else {
+        payload.rollNumber = rollNumber;
+      }
+
+      const res = await fetch("http://localhost:4000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+
+      if (isAdmin) {
+        // Admin registration - redirect to waiting for approval page (skip OTP)
+        setStatus("Registration successful! Redirecting...");
         setTimeout(() => {
-          router.push(`/verify-otp?email=${encodeURIComponent(email.toLowerCase())}`);
-        }, 1500);
+          router.push(`/pending-approval?email=${encodeURIComponent(email.toLowerCase())}&name=${encodeURIComponent(name)}`);
+        }, 1000);
       } else {
         // Student/Guard registration - needs email verification
         setStatus("Registration initiated! Redirecting to email verification...");
         setTimeout(() => {
           router.push(`/verify-otp?email=${encodeURIComponent(email.toLowerCase())}`);
-        }, 1500);
+        }, 1000);
       }
-    }, 800);
+    } catch (err: any) {
+      setStatus(err.message || "Registration failed");
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -50,7 +80,9 @@ export default function RegisterPage() {
           <p className="text-sm uppercase tracking-[0.4em] text-purple-300">Register</p>
           <h1 className="text-3xl font-bold text-white">Create your campus access</h1>
           <p className="text-sm text-slate-400">
-            Choose a role to join the system as a student, guard, or admin. You can switch roles at any time.
+            {isAdmin 
+              ? "Admin accounts require Super Admin approval before you can login."
+              : "Choose a role to join the system. You'll verify your email to complete registration."}
           </p>
         </header>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -140,6 +172,13 @@ export default function RegisterPage() {
               placeholder="Strong password"
             />
           </label>
+          
+          {isAdmin && (
+            <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 p-3 text-sm text-yellow-200">
+              ⚠️ Admin accounts require approval from the Super Admin before you can login.
+            </div>
+          )}
+          
           <button
             type="submit"
             disabled={isLoading}
@@ -148,9 +187,13 @@ export default function RegisterPage() {
             {isLoading ? "Creating account..." : `Register as ${role}`}
           </button>
         </form>
-        {status && <p className="text-center text-sm text-emerald-300">{status}</p>}
+        {status && (
+          <p className={`text-center text-sm ${status.includes("failed") || status.includes("error") ? "text-red-400" : "text-emerald-300"}`}>
+            {status}
+          </p>
+        )}
         <p className="text-center text-sm text-slate-400">
-          Already have an account? {" "}
+          Already have an account?{" "}
           <Link className="font-semibold text-white transition hover:text-purple-300" href="/login">
             Sign in
           </Link>

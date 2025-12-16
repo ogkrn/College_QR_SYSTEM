@@ -52,24 +52,20 @@ const dashboardConfig: Record<string, DashboardVariant> = {
 		],
 	},
 	super_admin: {
-		heroNote: "Full system control - manage all users, admins, and system configurations.",
+		heroNote: "Approve admin registrations, manage attendance, and control system settings.",
 		quickActions: [
-			{ label: "Manage Admins", href: "/admins", icon: "👑" },
-			{ label: "View All Students", href: "/students", icon: "👥" },
-			{ label: "System Logs", href: "/logs", icon: "📋" },
-			{ label: "All Outings", href: "/outings", icon: "🗓️" },
-			{ label: "Database Management", href: "/database", icon: "💾" },
-			{ label: "Advanced Settings", href: "/settings", icon: "⚙️" },
+			{ label: "Register Admin", href: "/admins/requests", icon: "👑" },
+			{ label: "Attendance", href: "/attendance", icon: "📊" },
+			{ label: "Leave Requests", href: "/leave/approve", icon: "📝" },
+			{ label: "Settings", href: "/settings", icon: "⚙️" },
 		],
 		stats: [
-			{ label: "Total Users", value: "247" },
-			{ label: "Active Admins", value: "8" },
+			{ label: "Pending Admin Requests", value: "0" },
+			{ label: "Active Admins", value: "0" },
 			{ label: "System Health", value: "100%" },
 		],
 		activity: [
-			{ title: "New Admin Created", description: "Admin ID: ADM-045", time: "10 min ago" },
-			{ title: "System Backup", description: "Automated backup completed", time: "1 hour ago" },
-			{ title: "Security Scan", description: "No threats detected", time: "2 hours ago" },
+			{ title: "System Ready", description: "All services operational", time: "Now" },
 		],
 	},
 	guard: {
@@ -114,7 +110,9 @@ export default function DashboardPage() {
 		);
 	}
 
-	const config = dashboardConfig[user.role] || dashboardConfig.student;
+	// Normalize role to lowercase for config lookup
+	const normalizedRole = user.role.toLowerCase();
+	const config = dashboardConfig[normalizedRole] || dashboardConfig.student;
 
 	const roleColors: Record<string, string> = {
 		admin: "from-rose-500 to-orange-500",
@@ -137,7 +135,7 @@ export default function DashboardPage() {
 					<h1 className="text-xl font-bold">College QR Portal</h1>
 				<div className="flex items-center gap-4">
 					<span className="text-sm text-slate-400">
-						{roleIcons[user.role]} {user.role === 'super_admin' ? 'Super Admin' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+						{roleIcons[normalizedRole]} {normalizedRole === 'super_admin' ? 'Super Admin' : normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)}
 					</span>
 						<Link
 							href="/login"
@@ -151,20 +149,20 @@ export default function DashboardPage() {
 
 			<main className="mx-auto max-w-6xl px-6 py-8">
 				<section
-					className={`mb-8 rounded-3xl bg-linear-to-br ${roleColors[user.role] || roleColors.student} p-8 shadow-2xl`}
+					className={`mb-8 rounded-3xl bg-linear-to-br ${roleColors[normalizedRole] || roleColors.student} p-8 shadow-2xl`}
 				>
 					<p className="text-sm uppercase tracking-widest text-white/70">Welcome back</p>
 					<p className="mt-2 text-3xl font-bold">{user.name}</p>
 					<p className="mt-1 text-white/80">{user.email}</p>
-					{user.role === 'super_admin' ? (
+					{normalizedRole === 'super_admin' ? (
 						<div className="mt-1 text-sm text-slate-400">Username: {(user as any).username ?? "Admin@1"}</div>
-					) : user.role === 'guard' ? (
+					) : normalizedRole === 'guard' ? (
 						<div className="mt-1 text-sm text-slate-400">ID number: {(user as any).idNumber ?? "N/A"}</div>
 					) : (
 						<div className="mt-1 text-sm text-slate-400">Roll number: {user.rollNumber ?? "N/A"}</div>
 					)}
 					<div className="mt-4 inline-block rounded-full bg-white/20 px-4 py-1 text-sm font-medium">
-						{roleIcons[user.role]} {user.role === 'super_admin' ? 'Super Admin' : user.role.charAt(0).toUpperCase() + user.role.slice(1)} Dashboard
+						{roleIcons[normalizedRole]} {normalizedRole === 'super_admin' ? 'Super Admin' : normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)} Dashboard
 					</div>
 					<p className="mt-3 text-sm text-white/80">{config.heroNote}</p>
 				</section>

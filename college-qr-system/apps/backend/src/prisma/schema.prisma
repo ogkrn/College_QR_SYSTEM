@@ -12,8 +12,8 @@ generator client {
 
 model User {
   id           String        @id @default(cuid())
-  rollNumber   String?       @unique
-  username     String?       @unique
+  rollNumber   String?
+  username     String?
   name         String
   email        String        @unique
   passwordHash String
@@ -28,6 +28,8 @@ model User {
   leaves       Leave[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  @@unique([role, rollNumber])
+  @@unique([role, username])
 }
 
 model QRActivity {
